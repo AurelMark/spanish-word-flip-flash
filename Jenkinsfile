@@ -43,6 +43,12 @@ pipeline {
                 sh 'npm ci'
                 sh 'npm run test:e2e'
             }
+            post {
+                always {
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, icon: '', keepAll: false, reportDir: 'reports-e2e/html/', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                    junit stdioRetention: 'ALL', testResults: 'reports-e2e/junit.xml'
+                }
+            }
         }
 
         stage('deploy') {
@@ -53,12 +59,6 @@ pipeline {
             }
             steps {
                 echo 'Mock deployment was successful!'
-            }
-            post {
-                always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, icon: '', keepAll: false, reportDir: 'reports-e2e/html/', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-                    junit stdioRetention: 'ALL', testResults: 'reports-e2e/junit.xml'
-                }
             }
         }
     }
