@@ -33,6 +33,17 @@ pipeline {
                         sh 'npm run test:unit'
                     }
                 }
+                stage('integration tests') {
+                  agent {
+                    docker {
+                      image 'mrc.microsoft.com/playwright:v.1.54.2-jammy'
+                      reuseNode true
+                    }
+                  }
+                  steps {
+                    sh 'npx playwright test'
+                  }
+                }
             }
         }
 
