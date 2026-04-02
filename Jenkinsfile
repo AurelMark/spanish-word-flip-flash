@@ -1,15 +1,29 @@
 pipeline {
     agent any
-    
+
     options {
         ansiColor('xterm')
     }
 
     stages {
+        stage('unit tests') {
+            agent {
+                docker {
+                    image 'node:22-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh 'npm ci'
+                sh 'npm run test:unit'
+            }
+        }
+
         stage('build') {
             agent {
                 docker {
                     image 'node:22-alpine'
+                    reuseNode true
                 }
             }
             steps {
@@ -18,32 +32,16 @@ pipeline {
             }
         }
 
-        stage('test') {
-            parallel {
-                stage('unit tests') {
-                    agent {
-                        docker {
-                            image 'node:22-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        // Unit tests with Vitest
-                        sh 'npm ci'
-                        sh 'npm run test:unit'
-                    }
+        stage('e2e tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
+                    reuseNode true
                 }
-                stage('integration tests') {
-                  agent {
-                    docker {
-                      image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
-                      reuseNode true
-                    }
-                  }
-                  steps {
-                    sh 'npx playwright test'
-                  }
-                }
+            }
+            steps {
+                sh 'npm ci'
+                sh 'npm run test:e2e'
             }
         }
 
@@ -54,21 +52,8 @@ pipeline {
                 }
             }
             steps {
-                // Mock deployment which does nothing
                 echo 'Mock deployment was successful!'
             }
-        }
-        stage('e2e') {
-          agent {
-            docker {
-              image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
-              reuseNode true
-            }
-          }
-
-          steps {
-            sh 'npx playwright test'
-          }
         }
     }
 }
